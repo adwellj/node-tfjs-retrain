@@ -1,0 +1,21 @@
+{
+    "name": "node-tfjs-retrain",
+    "version": "1.0.0",
+    "description": "",
+    "main": "app.js",
+    "scripts": {
+        "start": "node app.js \"C:/ML Demo/Projects/Colors_2/Images\"",
+        "no-retrain": "node app.js \"C:/ML Demo/Projects/Colors_2/Images\" true"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@tensorflow/tfjs": "^0.13.3",
+        "@tensorflow/tfjs-node": "^0.1.19",
+        "fast-glob": "^2.2.3",
+        "fs-extra": "^7.0.0",
+        "jpeg-js": "^0.3.4",
+        "node-fetch": "^2.2.0"
+    }
+}
