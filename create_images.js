@@ -33,13 +33,32 @@ async function createColorImages(colorName, rgbArray, numToCreate) {
     }
 }
 
+function randRGB(r, g, b) {
+    let val = Math.random();
+    if (val >= 0.25) {
+        return {
+            r: r * val,
+            g: g * val,
+            b: b * val
+        };
+    } else {
+        return {
+            r: 255,
+            g: 255,
+            b: 255
+        };
+    }
+}
+
 function encodeImage(r, g, b) {
-    let frameData = new Buffer(image_width * image_height * 4);
+    let frameData = Buffer.alloc(image_width * image_height * 4);
     let i = 0;
+
     while (i < frameData.length) {
-        frameData[i++] = r; // red
-        frameData[i++] = g; // green
-        frameData[i++] = b; // blue
+        let color = randRGB(r, g, b);
+        frameData[i++] = color.r; // red
+        frameData[i++] = color.g; // green
+        frameData[i++] = color.b; // blue
         frameData[i++] = 0xff; // alpha - ignored in JPEGs
     }
 
