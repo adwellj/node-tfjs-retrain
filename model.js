@@ -16,8 +16,8 @@ async function loadDecapitatedMobilenet() {
 }
 
 class Model {
-    constructor(modelsDirectory) {
-        this.modelsDirectory = modelsDirectory;
+    constructor() {
+        this.currentModelPath = null;
         this.decapitatedMobilenet = null;
         this.model = null;
         this.labels = null;
@@ -71,8 +71,8 @@ class Model {
         });
     }
 
-    getModelPath(projectName) {
-        return path.join(this.modelsDirectory, projectName);
+    currentModelPath() {
+        return this.currentModelPath;
     }
 
     getPrediction(x) {
@@ -90,21 +90,23 @@ class Model {
         };
     }
 
-    async loadModel(projectName) {
-        const dir = this.getModelPath(projectName);
-        this.model = await tf.loadModel("file://" + dir + "/model.json");
+    async loadModel(dirPath) {
+        this.model = await tf.loadModel("file://" + dirPath + "/model.json");
         this.labels = await fse
-            .readJson(path.join(dir, "labels.json"))
+            .readJson(path.join(dirPath, "labels.json"))
             .then(obj => obj.Labels);
+
+        this.currentModelPath = dirPath;
     }
 
-    async saveModel(projectName) {
-        const saveDir = this.getModelPath(projectName);
-        fse.ensureDirSync(saveDir);
-        await this.model.save("file://" + saveDir);
-        await fse.writeJson(path.join(saveDir, "labels.json"), {
+    async saveModel(dirPath) {
+        fse.ensureDirSync(dirPath);
+        await this.model.save("file://" + dirPath);
+        await fse.writeJson(path.join(dirPath, "labels.json"), {
             Labels: this.labels
         });
+
+        this.currentModelPath = dirPath;
     }
 
     /**
@@ -151,4 +153,4 @@ class Model {
     }
 }
 
-module.exports = new Model("./trained_models/");
+module.exports = Model;

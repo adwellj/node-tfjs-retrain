@@ -3,29 +3,32 @@ const tf = require("@tensorflow/tfjs");
 require("@tensorflow/tfjs-node");
 global.fetch = require("node-fetch");
 
+const minimist = require("minimist");
 const model = require("./model");
 const data = require("./data");
 const ui = require("./ui_mock");
-const path = require("path");
 
 let imageDir;
-let projectName;
+let modelDir;
+let skipTraining = false;
+
+const Model = new model();
 
 async function init() {
     await data.loadLabelsAndImages(imageDir);
 
     console.time("Loading Model");
-    await model.init();
+    await Model.init();
     console.timeEnd("Loading Model");
 }
 
 async function testModel() {
     console.log("Testing Model");
-    await model.loadModel(projectName);
+    await Model.loadModel(modelDir);
 
-    if (model.model) {
+    if (Model.model) {
         console.time("Testing Predictions");
-        console.log(model.model.summary());
+        console.log(Model.model.summary());
 
         let totalMislabeled = 0;
         let mislabeled = [];
@@ -38,7 +41,7 @@ async function testModel() {
                         ? data.getEmbeddingsForImage(imageIndex++)
                         : data.fileToTensor(img_filename);
 
-                    let prediction = model.getPrediction(embeddings);
+                    let prediction = Model.getPrediction(embeddings);
                     results.push({
                         class: prediction.label,
                         probability: (
@@ -67,7 +70,7 @@ async function testModel() {
 }
 
 async function trainModel() {
-    await data.loadTrainingData(model.decapitatedMobilenet);
+    await data.loadTrainingData(Model.decapitatedMobilenet);
     console.log("Loaded Training Data");
 
     if (data.dataset.images) {
@@ -80,7 +83,7 @@ async function trainModel() {
         };
 
         const labels = data.labelsAndImages.map(element => element.label);
-        const trainResult = await model.train(
+        const trainResult = await Model.train(
             data.dataset,
             labels,
             trainingParams
@@ -91,33 +94,40 @@ async function trainModel() {
             `Final Loss: ${Number(losses[losses.length - 1]).toFixed(5)}`
         );
 
-        console.log(model.model.summary());
+        console.log(Model.model.summary());
     } else {
         new Error("Must load data before training the model.");
     }
 }
 
-if (process.argv.length < 3) {
-    throw new Error(
-        "Incorrect Arguments: node app.js <IMAGE_DIR> <NO_RETRAIN?>"
-    );
+let args = minimist(process.argv.slice(2), {
+    string: ["images_dir", "model_dir"],
+    boolean: true,
+    default: {
+        skip_training: false
+    }
+});
+
+if (!args.images_dir) {
+    throw new Error("--images_dir not specified.");
 }
 
-imageDir = process.argv[2];
-projectName = path.basename(path.dirname(imageDir));
+if (!args.model_dir) {
+    throw new Error("--model_dir not specified.");
+}
+
+imageDir = args.images_dir;
+modelDir = args.model_dir;
+skipTraining = args.skip_training;
 
 init()
     .then(async () => {
-        const skipTraining =
-            process.argv.length === 4 &&
-            process.argv[3].toLowerCase() === "true";
-
         if (skipTraining) return;
 
         try {
             await trainModel();
 
-            await model.saveModel(projectName);
+            await Model.saveModel(modelDir);
         } catch (error) {
             console.error(error);
         }

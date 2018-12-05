@@ -4,8 +4,8 @@
     "description": "",
     "main": "app.js",
     "scripts": {
-        "start": "node app.js \"C:/ML Demo/Projects/Colors_2/Images\"",
-        "no-retrain": "node app.js \"C:/ML Demo/Projects/Colors_2/Images\" true"
+        "start": "node app.js --images_dir=\"C:/ML Demo/Projects/Colors_2/Images\" --model_dir=\"C:/ML Demo/Projects/Colors_2/tfjs-graph/\"",
+        "no-retrain": "node app.js --images_dir=\"C:/ML Demo/Projects/Colors_2/Images\" --model_dir=\"C:/ML Demo/Projects/Colors_2/tfjs-graph/\" --skip_training"
     },
     "keywords": [],
     "author": "",
@@ -16,6 +16,7 @@
         "fast-glob": "^2.2.3",
         "fs-extra": "^7.0.0",
         "jpeg-js": "^0.3.4",
+        "minimist": "^1.2.0",
         "node-fetch": "^2.2.0"
     }
 }
