@@ -17,7 +17,10 @@ async function getDirectories(imagesDirectory) {
 }
 
 async function getImagesInDirectory(directory) {
-    return await fg(path.join(directory, "*.jpg"));
+    return await fg([
+        path.join(directory, "*.jpg"),
+        path.join(directory, "*/*.jpg")
+    ]);
 }
 
 const imageByteArray = (image, numChannels) => {
