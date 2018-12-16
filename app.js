@@ -65,7 +65,10 @@ async function testModel() {
         });
         console.timeEnd("Testing Predictions");
         console.log(mislabeled);
-        console.log(`Total Mislabeled: ${totalMislabeled}`);
+        const totalImages = data.labelsAndImages
+            .map(item => item.images.length)
+            .reduce((p, c) => p + c);
+        console.log(`Total Mislabeled: ${totalMislabeled} / ${totalImages}`);
     }
 }
 

@@ -120,7 +120,10 @@ class Data {
                 embeddingsOffset += embeddingsFlatSize;
                 labelsOffset += 1;
             });
-            console.timeLog("Loading Training Data", { label: element.label });
+            console.timeLog("Loading Training Data", {
+                label: element.label,
+                count: element.images.length
+            });
         });
 
         this.dataset = {
