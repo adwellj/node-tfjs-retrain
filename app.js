@@ -8,14 +8,30 @@ const model = require("./model");
 const data = require("./data");
 const ui = require("./ui_mock");
 
-let imageDir;
-let modelDir;
-let skipTraining = false;
-
 const Model = new model();
 
+let args = minimist(process.argv.slice(2), {
+    string: ["images_dir", "model_dir"],
+    boolean: true,
+    default: {
+        skip_training: false,
+        batch_size_fraction: 0.4,
+        dense_units: 100,
+        epochs: 50,
+        learning_rate: 0.0001
+    }
+});
+
+if (!args.images_dir) {
+    throw new Error("--images_dir not specified.");
+}
+
+if (!args.model_dir) {
+    throw new Error("--model_dir not specified.");
+}
+
 async function init() {
-    await data.loadLabelsAndImages(imageDir);
+    await data.loadLabelsAndImages(args.images_dir);
 
     console.time("Loading Model");
     await Model.init();
@@ -24,7 +40,7 @@ async function init() {
 
 async function testModel() {
     console.log("Testing Model");
-    await Model.loadModel(modelDir);
+    await Model.loadModel(args.model_dir);
 
     if (Model.model) {
         console.time("Testing Predictions");
@@ -78,10 +94,10 @@ async function trainModel() {
 
     if (data.dataset.images) {
         const trainingParams = {
-            batchSizeFraction: ui.getBatchSizeFraction(),
-            denseUnits: ui.getDenseUnits(),
-            epochs: ui.getEpochs(),
-            learningRate: ui.getLearningRate(),
+            batchSizeFraction: args.batch_size_fraction,
+            denseUnits: args.dense_units,
+            epochs: args.epochs,
+            learningRate: args.learning_rate,
             trainStatus: ui.trainStatus
         };
 
@@ -103,34 +119,14 @@ async function trainModel() {
     }
 }
 
-let args = minimist(process.argv.slice(2), {
-    string: ["images_dir", "model_dir"],
-    boolean: true,
-    default: {
-        skip_training: false
-    }
-});
-
-if (!args.images_dir) {
-    throw new Error("--images_dir not specified.");
-}
-
-if (!args.model_dir) {
-    throw new Error("--model_dir not specified.");
-}
-
-imageDir = args.images_dir;
-modelDir = args.model_dir;
-skipTraining = args.skip_training;
-
 init()
     .then(async () => {
-        if (skipTraining) return;
+        if (args.skip_training) return;
 
         try {
             await trainModel();
 
-            await Model.saveModel(modelDir);
+            await Model.saveModel(args.model_dir);
         } catch (error) {
             console.error(error);
         }
