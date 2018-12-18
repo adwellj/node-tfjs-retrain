@@ -8,9 +8,13 @@ let args = minimist(process.argv.slice(2), {
     string: ["images_dir", "labels_to_skip"],
     boolean: true,
     default: {
-        flip_images: false
+        flip_images: false,
+        adjust_brightness: false,
+        ignore_subdirectories: false
     }
 });
+
+console.log(args);
 
 if (!args.images_dir) {
     throw new Error("--images_dir not specified.");
@@ -38,9 +42,11 @@ async function run() {
 
         if (!labels_to_skip.includes(item.label.toLowerCase())) {
             if (args.flip_images) {
+                console.log(`Flipping: ${item.label}`);
                 const newNames = await augment_flip(files, true, true);
             }
             if (args.adjust_brightness) {
+                console.log(`Adjusting Brightness: ${item.label}`);
                 const newNames = await augment_brightness(files);
             }
         }
@@ -116,7 +122,10 @@ async function getImagesInDirectory(directory) {
 }
 
 async function readImagesDirectory(imagesDirectory) {
-    const directories = await getDirectories(imagesDirectory);
+    let directories = args.ignore_subdirectories
+        ? [""]
+        : await getDirectories(imagesDirectory);
+
     const result = await Promise.all(
         directories.map(async directory => {
             const p = path.join(imagesDirectory, directory);
