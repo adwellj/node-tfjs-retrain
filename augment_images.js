@@ -28,7 +28,8 @@ async function run() {
     let images = await readImagesDirectory(args.images_dir);
     let labels_to_skip = (args.labels_to_skip || "")
         .split(";")
-        .map(item => item.toLowerCase());
+        .map(item => item.toLowerCase().trim())
+        .filter(item => item.length > 0);
 
     for (const item of images) {
         const files = await Promise.all(
