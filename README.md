@@ -13,9 +13,9 @@ Excellent article from James Thomas that helped (_skip the stuff about downloadi
 ## Example Usages
 
 -   Retrain and test model:  
-    `node app.js C:/Retraining_Project/Images`
+    `node app.js --images_dir="C:/Retraining_Project/Images" --model_dir="C:/Retraining_Project/Model"`
 -   Skip retraining; just test model:  
-    `node app.js C:/Retraining_Project/Images false`
+    `node app.js --images_dir="C:/Retraining_Project/Images" --model_dir="C:/Retraining_Project/Model" --skip_training=true`
 -   Create sample images:  
     `node create_images.js C:/Retraining_Project/Images`
 
@@ -26,5 +26,5 @@ I'm quite new to Node and TF, so there's a lot of room for cleanup and code impr
 # Initial TODOs:
 
 -   [x] Create a script to automatically build a training data set to enable users to immediately get started
--   [ ] Save trained model in the project directory
--   [ ] Replace ui_mock.js with a TrainingParams class
+-   [x] Save trained model in the project directory
+-   [x] Replace ui_mock.js with a TrainingParams class
