@@ -2,14 +2,15 @@
 const tf = require("@tensorflow/tfjs");
 const fg = require("fast-glob");
 const fse = require("fs-extra");
-const jpeg = require("jpeg-js");
+const sharp = require("sharp");
 const path = require("path");
 
-const IMAGE_CHANNELS = 3;
+async function fileToTensor(filename) {
+    const { data, info } = await sharp(filename)
+        .raw()
+        .toBuffer({ resolveWithObject: true });
 
-function fileToTensor(filename) {
-    const img = jpeg.decode(fse.readFileSync(filename), true);
-    return imageToTensor(img, IMAGE_CHANNELS);
+    return tf.tidy(() => imageToTensor(data, info));
 }
 
 async function getDirectories(imagesDirectory) {
@@ -19,29 +20,16 @@ async function getDirectories(imagesDirectory) {
 async function getImagesInDirectory(directory) {
     return await fg([
         path.join(directory, "*.jpg"),
-        path.join(directory, "*/*.jpg")
+        path.join(directory, "*/*.jpg"),
+        path.join(directory, "*.png"),
+        path.join(directory, "*/*.png")
     ]);
 }
 
-const imageByteArray = (image, numChannels) => {
-    const pixels = image.data;
-    const numPixels = image.width * image.height;
-    const values = new Int32Array(numPixels * numChannels);
-
-    for (let i = 0; i < numPixels; i++) {
-        for (let channel = 0; channel < numChannels; channel++) {
-            values[i * numChannels + channel] = pixels[i * 4 + channel];
-        }
-    }
-
-    return values;
-};
-
-const imageToTensor = (image, numChannels) => {
-    const values = imageByteArray(image, numChannels);
-    const outShape = [1, image.height, image.width, numChannels];
+const imageToTensor = (pixelData, imageInfo) => {
+    const outShape = [1, imageInfo.height, imageInfo.width, imageInfo.channels];
     return tf
-        .tensor4d(values, outShape, "int32")
+        .tensor4d(pixelData, outShape, "int32")
         .toFloat()
         .resizeBilinear([224, 224])
         .div(tf.scalar(127))
@@ -107,24 +95,25 @@ class Data {
         let labelsOffset = 0;
         console.log("Loading Training Data");
         console.time("Loading Training Data");
-        await this.labelsAndImages.forEach(element => {
+        for (const element of this.labelsAndImages) {
             let labelIndex = this.labelIndex(element.label);
-            element.images.forEach(image => {
+            for (const image of element.images) {
+                let t = await fileToTensor(image);
                 tf.tidy(() => {
-                    let t = fileToTensor(image);
                     let prediction = model.predict(t);
                     embeddings.set(prediction.dataSync(), embeddingsOffset);
                     labels.set([labelIndex], labelsOffset);
                 });
+                t.dispose();
 
                 embeddingsOffset += embeddingsFlatSize;
                 labelsOffset += 1;
-            });
+            }
             console.timeLog("Loading Training Data", {
                 label: element.label,
                 count: element.images.length
             });
-        });
+        }
 
         this.dataset = {
             images: tf.tensor4d(embeddings, embeddingsShape),
