@@ -1,5 +1,5 @@
 const minimist = require("minimist");
-const cv = require("opencv4nodejs");
+const sharp = require("sharp");
 const fg = require("fast-glob");
 const fse = require("fs-extra");
 const path = require("path");
@@ -35,7 +35,7 @@ async function run() {
         const files = await Promise.all(
             item.images.map(async name => {
                 return {
-                    image: await cv.imreadAsync(name),
+                    image: await sharp(name),
                     parsed: path.parse(name)
                 };
             })
@@ -64,12 +64,12 @@ async function augment_brightness(files, brightnessDelta = 0.2) {
         let writePromises = [];
         await fse.ensureDir(baseDir);
 
-        const brighter = item.image.mul(1 + brightnessDelta);
-        const darker = item.image.mul(1 - brightnessDelta);
+        const brighter = item.image.clone().linear(1 + brightnessDelta);
+        const darker = item.image.clone().linear(1 - brightnessDelta);
         names.push(baseName + "_b" + item.parsed.ext);
-        writePromises.push(cv.imwriteAsync(names[names.length - 1], brighter));
+        writePromises.push(brighter.toFile(names[names.length - 1]));
         names.push(baseName + "_d" + item.parsed.ext);
-        writePromises.push(cv.imwriteAsync(names[names.length - 1], darker));
+        writePromises.push(darker.toFile(names[names.length - 1]));
 
         await Promise.all(writePromises);
     }
@@ -86,21 +86,27 @@ async function augment_flip(files, flip_x, flip_y) {
         if (flip_x || flip_y) await fse.ensureDir(baseDir);
 
         if (flip_x) {
-            names.push(baseName + "_m_x" + item.parsed.ext);
+            names.push(baseName + "_f_x" + item.parsed.ext);
             writePromises.push(
-                flipAndWrite(item.image, 1, names[names.length - 1])
+                item.image
+                    .clone()
+                    .flop()
+                    .toFile(names[names.length - 1])
             );
         }
         if (flip_y) {
-            names.push(baseName + "_m_y" + item.parsed.ext);
+            names.push(baseName + "_f_y" + item.parsed.ext);
             writePromises.push(
-                flipAndWrite(item.image, 0, names[names.length - 1])
+                item.image.flip().toFile(names[names.length - 1])
             );
         }
         if (flip_x && flip_y) {
-            names.push(baseName + "_m_xy" + item.parsed.ext);
+            names.push(baseName + "_f_xy" + item.parsed.ext);
             writePromises.push(
-                flipAndWrite(item.image, -1, names[names.length - 1])
+                item.image
+                    .flop()
+                    .flip()
+                    .toFile(names[names.length - 1])
             );
         }
 
@@ -110,16 +116,15 @@ async function augment_flip(files, flip_x, flip_y) {
     return names;
 }
 
-async function flipAndWrite(image, flipCode, name) {
-    await cv.imwriteAsync(name, await image.flipAsync(flipCode));
-}
-
 async function getDirectories(imagesDirectory) {
     return await fse.readdir(imagesDirectory);
 }
 
 async function getImagesInDirectory(directory) {
-    return await fg(path.join(directory, "*.jpg"));
+    return await fg([
+        path.join(directory, "*.png"),
+        path.join(directory, "*.jpg")
+    ]);
 }
 
 async function readImagesDirectory(imagesDirectory) {
