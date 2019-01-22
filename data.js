@@ -10,7 +10,7 @@ async function fileToTensor(filename) {
         .raw()
         .toBuffer({ resolveWithObject: true });
 
-    return tf.tidy(() => imageToTensor(data, info));
+    return imageToTensor(data, info);
 }
 
 async function getDirectories(imagesDirectory) {
@@ -28,12 +28,15 @@ async function getImagesInDirectory(directory) {
 
 const imageToTensor = (pixelData, imageInfo) => {
     const outShape = [1, imageInfo.height, imageInfo.width, imageInfo.channels];
-    return tf
-        .tensor4d(pixelData, outShape, "int32")
-        .toFloat()
-        .resizeBilinear([224, 224])
-        .div(tf.scalar(127))
-        .sub(tf.scalar(1));
+
+    return tf.tidy(() =>
+        tf
+            .tensor4d(pixelData, outShape, "int32")
+            .toFloat()
+            .resizeBilinear([224, 224])
+            .div(tf.scalar(127))
+            .sub(tf.scalar(1))
+    );
 };
 
 async function readImagesDirectory(imagesDirectory) {
