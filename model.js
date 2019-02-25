@@ -1,12 +1,12 @@
 //@ts-check
-const tf = require("@tensorflow/tfjs");
+const tf = require("@tensorflow/tfjs-node");
 const fse = require("fs-extra");
 const path = require("path");
 
 // Loads mobilenet and returns a model that returns the internal activation
 // we'll use as input to our classifier model.
 async function loadDecapitatedMobilenet() {
-    const mobilenet = await tf.loadModel(
+    const mobilenet = await tf.loadLayersModel(
         "https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_1.0_224/model.json"
     );
 
@@ -91,7 +91,9 @@ class Model {
     }
 
     async loadModel(dirPath) {
-        this.model = await tf.loadModel("file://" + dirPath + "/model.json");
+        this.model = await tf.loadLayersModel(
+            "file://" + dirPath + "/model.json"
+        );
         this.labels = await fse
             .readJson(path.join(dirPath, "labels.json"))
             .then(obj => obj.Labels);

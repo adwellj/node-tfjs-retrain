@@ -1,5 +1,5 @@
 //@ts-check
-const tf = require("@tensorflow/tfjs");
+const tf = require("@tensorflow/tfjs-node");
 const fg = require("fast-glob");
 const fse = require("fs-extra");
 const sharp = require("sharp");

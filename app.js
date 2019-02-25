@@ -1,7 +1,5 @@
 // @ts-check
-const tf = require("@tensorflow/tfjs");
-require("@tensorflow/tfjs-node");
-global.fetch = require("node-fetch");
+const tf = require("@tensorflow/tfjs-node");
 
 const minimist = require("minimist");
 const model = require("./model");
@@ -89,9 +87,6 @@ async function testModel() {
 }
 
 async function trainModel() {
-    await data.loadTrainingData(Model.decapitatedMobilenet);
-    console.log("Loaded Training Data");
-
     if (data.dataset.images) {
         const trainingParams = {
             batchSizeFraction: args.batch_size_fraction,
@@ -121,6 +116,9 @@ async function trainModel() {
 
 init()
     .then(async () => {
+        await data.loadTrainingData(Model.decapitatedMobilenet);
+        console.log("Loaded Training Data");
+
         if (args.skip_training) return;
 
         try {
