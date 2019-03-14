@@ -13,7 +13,7 @@ let args = minimist(process.argv.slice(2), {
     boolean: true,
     default: {
         skip_training: false,
-        batch_size_fraction: 0.4,
+        batch_size_fraction: 0.2,
         dense_units: 100,
         epochs: 50,
         learning_rate: 0.0001
