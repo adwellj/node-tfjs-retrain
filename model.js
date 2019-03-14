@@ -138,20 +138,31 @@ class Model {
             );
         }
 
+        const shuffledIndices = new Int32Array(
+            tf.util.createShuffledIndices(dataset.labels.shape[0])
+        );
+
         // Train the model! Model.fit() will shuffle xs & ys so we don't have to.
         console.time("Training Time");
-        return this.model.fit(dataset.images, dataset.labels, {
-            batchSize,
-            epochs: trainingParams.epochs,
-            callbacks: {
-                onBatchEnd: async (batch, logs) => {
-                    trainingParams.trainStatus("Loss: " + logs.loss.toFixed(5));
-                },
-                onTrainEnd: async logs => {
-                    console.timeEnd("Training Time");
+        return this.model.fit(
+            dataset.images.gather(shuffledIndices),
+            dataset.labels.gather(shuffledIndices),
+            {
+                batchSize,
+                epochs: trainingParams.epochs,
+                validationSplit: 0.15,
+                callbacks: {
+                    onBatchEnd: async (batch, logs) => {
+                        trainingParams.trainStatus(
+                            "Loss: " + logs.loss.toFixed(5)
+                        );
+                    },
+                    onTrainEnd: async logs => {
+                        console.timeEnd("Training Time");
+                    }
                 }
             }
-        });
+        );
     }
 }
 
