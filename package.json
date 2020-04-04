@@ -13,7 +13,7 @@
         "@tensorflow/tfjs-node": "^0.3.0",
         "fast-glob": "^2.2.3",
         "fs-extra": "^7.0.0",
-        "minimist": "^1.2.0",
+        "minimist": "^1.2.3",
         "node-fetch": "^2.2.0",
         "sharp": "^0.21.3"
     },
