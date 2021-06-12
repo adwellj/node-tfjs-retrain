@@ -1,0 +1,7 @@
+stages:
+  - build
+
+build:
+  stage: build
+  image: node:buster
+  script: npm install
