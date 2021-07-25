@@ -4,6 +4,7 @@ const fg = require("fast-glob");
 const fse = require("fs-extra");
 const sharp = require("sharp");
 const path = require("path");
+const debug = require("debug")("nt data");
 
 async function fileToTensor(filename) {
     const { data, info } = await sharp(filename)
@@ -100,7 +101,8 @@ class Data {
         console.time("Loading Training Data");
         for (const element of this.labelsAndImages) {
             let labelIndex = this.labelIndex(element.label);
-            for (const image of element.images) {
+          for (const image of element.images) {
+            debug(image);
                 let t = await fileToTensor(image);
                 tf.tidy(() => {
                     let prediction = model.predict(t);
