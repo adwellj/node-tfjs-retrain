@@ -4,7 +4,7 @@ const fg = require("fast-glob");
 const fse = require("fs-extra");
 const sharp = require("sharp");
 const path = require("path");
-const debug = require("debug")("nt data");
+const debug = require("debug")("ntr data");
 
 async function fileToTensor(filename) {
     const { data, info } = await sharp(filename)
