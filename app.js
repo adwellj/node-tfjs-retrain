@@ -29,11 +29,12 @@ if (!args.model_dir) {
 }
 
 async function init() {
-    await data.loadLabelsAndImages(args.images_dir);
+  const datapromise = data.loadLabelsAndImages(args.images_dir);
 
-    console.time("Loading Model");
-    await Model.init();
-    console.timeEnd("Loading Model");
+  console.time("Loading Model");
+  const modelpromise = Model.init();
+  console.timeEnd("Loading Model");
+  await Promise.all([datapromise, modelpromise]);
 }
 
 async function testModel() {
