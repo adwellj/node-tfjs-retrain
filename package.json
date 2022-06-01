@@ -15,7 +15,7 @@
         "fs-extra": "^7.0.0",
         "minimist": "^1.2.3",
         "node-fetch": "^2.6.1",
-        "sharp": "^0.21.3"
+        "sharp": "^0.30.5"
     },
     "repository": {
         "type": "git",
